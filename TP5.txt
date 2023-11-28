@@ -1,0 +1,69 @@
+USE ProjetSQLServer2
+GO
+
+DROP table if exists roles;
+DROP table if exists equipes;
+DROP table if exists employes;
+
+
+
+CREATE TABLE employes (
+	id_employe int IDENTITY(1, 1) PRIMARY KEY,
+	nom VARCHAR(100) NOT NULL,
+	prenom VARCHAR(100) NOT NULL,
+);
+
+CREATE TABLE equipes (
+	id_equipe int IDENTITY(1, 1) PRIMARY KEY,
+	nom_equipe VARCHAR(150) NOT NULL,
+	nom_projet VARCHAR(150) NOT NULL,
+);
+
+CREATE TABLE roles (
+	equipe_id INT NOT NULL,
+	eploye_id INT NOT NULL,
+	roles VARCHAR(100) NOT NULL,
+	CONSTRAINT FK_EQ_RO FOREIGN KEY(equipe_id) REFERENCES equipes(id_equipe),
+	CONSTRAINT FK_EM_RO FOREIGN KEY(eploye_id) REFERENCES employes(id_employe),
+	CONSTRAINT PK_ROLES PRIMARY KEY(equipe_id, eploye_id),
+);
+
+INSERT INTO employes(nom, prenom) VALUES
+	('Brad', 'Pitt'),
+	('Bruce', 'Willis'),
+	('Nicolas', 'CAGE'),
+	('Angelina', 'Jolie'),
+	('TOM', 'Cruise'),
+	('TOM', 'Hanks'),
+	('Bob', 'Dylan'),
+	('Johnny', 'Cash'),
+	('jimmy', 'Hendrix');
+
+INSERT INTO equipes(nom_equipe, nom_projet) VALUES
+('Team A', 'Projet site internet Mairie'),
+('Team B', 'Projet CRM'),
+('Team C', 'Projet ERP');
+
+INSERT INTO roles(equipe_id, eploye_id, roles) VALUES
+	(1, 1, 'chef'),
+	(1, 2, 'designer'),
+	(1, 3, 'designer'),
+	(2, 4, 'chef'),
+	(2, 5, 'designer'),
+	(2, 6, 'designer'),
+	(3, 7, 'chef'),
+	(3, 8, 'designer'),
+	(3, 9, 'designer');
+
+SELECT e.nom, e.prenom, r.roles
+FROM employes e
+JOIN roles r ON r.eploye_id = e.id_employe
+JOIN equipes eq ON r.equipe_id = eq.id_equipe
+WHERE eq.nom_projet = 'Projet CRM';
+
+SELECT eq.nom_equipe, e.nom, e.prenom, r.roles
+FROM employes e
+JOIN roles r ON r.eploye_id = e.id_employe
+JOIN equipes eq ON r.equipe_id = eq.id_equipe
+ORDER BY eq.id_equipe ASC;
+

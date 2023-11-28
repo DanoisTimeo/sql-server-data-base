@@ -1,0 +1,138 @@
+Table clients {
+  id_client int [pk,increment]
+  nom_client varchar(255) [not null]
+}
+
+Table projets {
+  id_projet int [pk,increment]
+  client_id int [not null]
+  nom_projet varchar(255) [not null]
+  description_projet varchar(255) [not null]
+}
+
+Table devis {
+  id_devis int [pk,increment]
+  projet_id int [not null]
+  version_devis int [not null]
+  reference_devis varchar(100) [not null]
+  prix_HT_devis float [not null]
+  prix_TTC_devis float [not null]
+}
+
+Table factures {
+  id_facture int [pk,increment]
+  devis_id int [not null]
+  reference_facture varchar(100) [not null]
+  info_facture varchar(255) [not null]
+  date_crea_facture date [not null]
+  date_paiement_facture date
+  prix_HT_facture float [not null]
+  prix_TTC_facture float [not null]
+}
+
+Ref: "clients"."id_client" < "projets"."client_id"
+
+Ref: "projets"."id_projet" < "devis"."projet_id"
+
+Ref: "devis"."id_devis" < "factures"."devis_id"
+
+
+
+USE ProjetSQLServer1;
+GO
+INSERT INTO clients(nom_client) VALUES('Mairie de Rennes');
+INSERT INTO clients(nom_client) VALUES('Neo Soft');
+INSERT INTO clients(nom_client) VALUES('Sopra');
+INSERT INTO clients(nom_client) VALUES('Accenture');
+INSERT INTO clients(nom_client) VALUES('Amazon');
+
+INSERT INTO projets(client_id, nom_projet, description_projet) VALUES(1,'Creation de site internet', 'blablabla');
+INSERT INTO projets(client_id, nom_projet, description_projet) VALUES(2,'Logiciel CRM', 'blablabla');
+INSERT INTO projets(client_id, nom_projet, description_projet) VALUES(2,'logiciel ERP', 'blablabla');
+INSERT INTO projets(client_id, nom_projet, description_projet) VALUES(3,'Logiciel de devis', 'blablabla');
+INSERT INTO projets(client_id, nom_projet, description_projet) VALUES(4,'Site internet ecommerce', 'blablabla');
+INSERT INTO projets(client_id, nom_projet, description_projet) VALUES(5,'logiciel Gestion de Stock', 'blablabla');
+
+INSERT INTO devis(projet_id, version_devis, reference_devis, prix_HT_devis, prix_TTC_devis) VALUES(1, 1, 'DEV2100A', 2200, 3000);
+INSERT INTO devis(projet_id, version_devis, reference_devis, prix_HT_devis, prix_TTC_devis) VALUES(1, 2, 'DEV2100B', 3900, 5000);
+INSERT INTO devis(projet_id, version_devis, reference_devis, prix_HT_devis, prix_TTC_devis) VALUES(2, 1, 'DEV2100C', 3900, 5000);
+INSERT INTO devis(projet_id, version_devis, reference_devis, prix_HT_devis, prix_TTC_devis) VALUES(4, 1, 'DEV2100D', 2200, 3000);
+INSERT INTO devis(projet_id, version_devis, reference_devis, prix_HT_devis, prix_TTC_devis) VALUES(5, 1, 'DEV2100E', 3900, 5000);
+INSERT INTO devis(projet_id, version_devis, reference_devis, prix_HT_devis, prix_TTC_devis) VALUES(3, 1, 'DEV2100F', 1400, 2000);
+INSERT INTO devis(projet_id, version_devis, reference_devis, prix_HT_devis, prix_TTC_devis) VALUES(6, 1, 'DEV2100G', 600, 1000);
+
+INSERT INTO factures(devis_id, reference_facture, info_facture, date_crea_facture, date_paiement_facture, prix_HT_facture, prix_TTC_facture) VALUES(1, 'FA001', 'Site internet partie 1', '2023-09-01', '2023-10-01',1100, 1500);
+INSERT INTO factures(devis_id, reference_facture, info_facture, date_crea_facture, prix_HT_facture, prix_TTC_facture) VALUES(1, 'FA002', 'Site internet partie 2', '2023-09-20',1100, 1500);
+INSERT INTO factures(devis_id, reference_facture, info_facture, date_crea_facture, prix_HT_facture, prix_TTC_facture) VALUES(3, 'FA003', 'Logiciel CRM', '2023-08-01',3900, 5000);
+INSERT INTO factures(devis_id, reference_facture, info_facture, date_crea_facture, date_paiement_facture, prix_HT_facture, prix_TTC_facture) VALUES(4, 'FA004', 'Logiciel devis', '2023-03-03', '2023-04-03',2200, 3000);
+INSERT INTO factures(devis_id, reference_facture, info_facture, date_crea_facture, prix_HT_facture, prix_TTC_facture) VALUES(5, 'FA005', 'Site internet ecommerce', '2023-04-03', 3900, 5000);
+INSERT INTO factures(devis_id, reference_facture, info_facture, date_crea_facture, prix_HT_facture, prix_TTC_facture) VALUES(6, 'FA006', 'logiciel ERP ', '2023-05-04', 1400, 2000);
+
+
+SELECT f.* 
+FROM factures f, clients c, devis d, projets p 
+WHERE c.id_client = p.client_id AND p.id_projet = d.projet_id AND d.id_devis = f.devis_id AND c.id_client = 1;
+v
+
+
+
+
+
+
+
+
+
+USE ProjetSQLServer1;
+GO
+SELECT f.* 
+FROM factures f, clients c, devis d, projets p 
+WHERE c.id_client = p.client_id AND p.id_projet = d.projet_id AND d.id_devis = f.devis_id AND c.nom_client = 'Mairie de Rennes';
+
+SELECT c.nom_client, COUNT(*) AS nb_factures
+FROM factures f, clients c, devis d, projets p 
+WHERE c.id_client = p.client_id AND p.id_projet = d.projet_id AND d.id_devis = f.devis_id
+GROUP BY c.nom_client
+HAVING COUNT(*) = (
+    SELECT MAX(nb_factures)
+    FROM (
+        SELECT COUNT(*) AS nb_factures
+        FROM factures f
+        JOIN devis d ON f.devis_id = d.id_devis
+        JOIN projets p ON d.projet_id = p.id_projet
+        JOIN clients c ON p.client_id = c.id_client
+        GROUP BY c.nom_client
+    ) AS subquery
+);
+
+SELECT c.nom_client, SUM(f.prix_TTC_facture) AS montantTotalFacturé 
+FROM factures f, clients c, devis d, projets p 
+WHERE c.id_client = p.client_id AND p.id_projet = d.projet_id AND d.id_devis = f.devis_id
+GROUP BY c.nom_client;
+
+SELECT c.nom_client, COUNT(*) AS nb_devis
+FROM clients c, devis d, projets p 
+WHERE c.id_client = p.client_id AND p.id_projet = d.projet_id
+GROUP BY c.nom_client;
+
+SELECT SUM(f.prix_TTC_facture) AS CA 
+FROM factures f;
+
+SELECT c.nom_client, SUM(f.prix_TTC_facture) AS montantTotalFacturéEnAttente
+FROM factures f, clients c, devis d, projets p 
+WHERE c.id_client = p.client_id AND p.id_projet = d.projet_id AND d.id_devis = f.devis_id AND f.date_paiement_facture is NULL
+GROUP BY c.nom_client;
+
+/*SELECT c.nom_client, SUM(f.prix_TTC_facture) AS montantTotalFacturéEnRetard
+FROM factures f, clients c, devis d, projets p 
+WHERE c.id_client = p.client_id AND p.id_projet = d.projet_id AND d.id_devis = f.devis_id AND f.date_paiement_facture is NULL AND f.date_crea_facture < DATEADD(DAY, -30, GETDATE())
+GROUP BY c.nom_client; */
+
+SELECT c.nom_client, f.devis_id, f.reference_facture, f.info_facture, f.date_crea_facture, f.prix_HT_facture, f.prix_HT_facture, DATEDIFF(day, DATEADD(DAY, 30, f.date_crea_facture), getdate()) AS JoursRetard
+FROM factures f, clients c, devis d, projets p 
+WHERE c.id_client = p.client_id AND p.id_projet = d.projet_id AND d.id_devis = f.devis_id AND f.date_paiement_facture is NULL AND f.date_crea_facture < DATEADD(DAY, -30, GETDATE())
+;
+
+SELECT SUM(f.prix_TTC_facture) AS montantTotalFacturéEnRetard
+FROM factures f
+WHERE f.date_paiement_facture is NULL AND f.date_crea_facture < DATEADD(DAY, -30, GETDATE())
+;
